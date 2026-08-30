@@ -1,0 +1,45 @@
+;; Illustrative EDN serialization. The generic standard does not mandate EDN.
+;; Prefer primary observations and derive judgments rather than asserting
+;; an unsupported {:correct? true}.
+
+{:evidence/schema-version 1
+ :project/id :example/project
+ :application/id :example/application
+ :capability/id :session/completion
+ :specification
+ {:spec/id :session/completion
+  :spec/version "1.0.0"
+  :spec/revision "<content digest or VCS revision>"
+  :claim/ids
+  [:session/completion-derived-from-end
+   :session/status-is-not-authoritative]}
+ :implementation
+ {:vcs/revision "<commit SHA>"
+  :artifact/digest "<optional immutable artifact digest>"}
+ :experiments
+ [{:experiment/id :session/example-tests
+   :experiment/class :examples
+   :claim/ids [:session/completion-derived-from-end]
+   :independence/level :i1
+   :observation {:test/count 4 :assertion/count 8 :failure/count 0 :error/count 0}}
+  {:experiment/id :session/completion-property
+   :experiment/class :property-based
+   :claim/ids [:session/completion-derived-from-end :session/status-is-not-authoritative]
+   :independence/level :i2
+   :input {:seed 4815162342}
+   :observation {:generated-case/count 10000 :counterexample/count 0}}
+  {:experiment/id :session/semantic-mutations
+   :experiment/class :semantic-variants
+   :claim/ids [:session/completion-derived-from-end :session/status-is-not-authoritative]
+   :independence/level :i3
+   :observation {:variant/count 3 :killed/count 3 :survived/count 0}}]
+ :claim/judgments
+ [{:claim/id :session/completion-derived-from-end
+   :judgment :not-falsified-within-scope}
+  {:claim/id :session/status-is-not-authoritative
+   :judgment :not-falsified-within-scope}]
+ :counterexamples []
+ :limitations
+ ["Concurrent writers were not exercised."
+  "Clock-skew behaviour is outside this specification version."]
+ :unverified [:session/concurrent-writers :session/clock-skew]}
