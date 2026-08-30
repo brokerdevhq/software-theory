@@ -1,0 +1,105 @@
+#+title: Session Completion — Literate Capability Specification
+#+property: header-args:clojure :results value replace :exports both
+
+* Metadata
+
+- Specification: =:session/completion=
+- Version: =1.0.0=
+- Status: illustrative
+- Assurance: A1
+
+This file demonstrates the authority relationship. It is not a runnable project by itself; namespaces and commands are placeholders for an adopting Clojure repository.
+
+* Intent
+
+A session's completion is an interpretation of recorded temporal facts. Completion is not an independently asserted mutable status.
+
+* Vocabulary and authority
+
+- =:session/started-at= is an authoritative observation that the session began.
+- =:session/ended-at= is an authoritative observation that the session ended.
+- =completed?= is a derived interpretation.
+- =:session/status= is not authoritative and must not influence completion.
+
+* Normative claims
+
+** claim/session-completion-derived-from-end
+
+A session is complete if and only if an end observation exists in the applicable fact basis.
+
+** claim/session-status-not-authoritative
+
+Adding, removing, or changing an unrelated =:session/status= value cannot change the result of =completed?=.
+
+* Examples
+
+| started-at | ended-at | derived completed? |
+|------------+----------+--------------------|
+| t1         | absent   | false              |
+| t1         | t2       | true               |
+
+* Falsification targets
+
+The verifier should attempt to find:
+
+- a basis with =:session/ended-at= where =completed?= is false;
+- a basis without =:session/ended-at= where =completed?= is true;
+- an unrelated fact that changes completion;
+- a =:session/status= value that changes completion;
+- a test that remains green when =completed?= is replaced with a constant.
+
+* Claim-linked ordinary examples
+
+The literate runner selects ordinary tests. The complete project test runner must still run all tests independently.
+
+#+name: session-completion-example-evidence
+#+begin_src clojure
+(require '[project.literate.test-runner :as literate])
+
+(literate/run-tests
+ ['project.session.interface-test/incomplete-without-end-test
+  'project.session.interface-test/complete-with-end-test])
+#+end_src
+
+#+RESULTS: session-completion-example-evidence
+: {:test/vars [project.session.interface-test/incomplete-without-end-test
+:              project.session.interface-test/complete-with-end-test]
+:  :test/count 2
+:  :assertion/count 2
+:  :failure/count 0
+:  :error/count 0}
+
+* Property experiment
+
+The property is derived from the claim, not from the implementation algorithm.
+
+#+name: session-completion-property-evidence
+#+begin_src clojure
+(require '[project.session.properties :as properties])
+
+(properties/check-completion
+ {:num-tests 10000
+  :seed 4815162342})
+#+end_src
+
+#+RESULTS: session-completion-property-evidence
+: {:property/id :session/completion-derived-from-end
+:  :generated-case/count 10000
+:  :counterexample/count 0
+:  :seed 4815162342}
+
+* Experiment validity
+
+The project should demonstrate that the property fails when:
+
+1. =completed?= always returns =true=;
+2. =completed?= always returns =false=;
+3. =completed?= reads =:session/status= instead of =:session/ended-at=.
+
+The committed evidence should record variant counts and survivors rather than merely asserting that mutation testing was performed.
+
+* Current scoped judgment
+
+The evidence supports =:not-falsified-within-scope= for the two claims above.
+
+It does not establish behaviour for concurrent writers, clock skew, or malformed temporal facts.
